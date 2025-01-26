@@ -32,6 +32,17 @@ Change the feature to either tiny_image or bag_of_sift and classifier to either 
 ![Bag svm](./results/bag_sift_svm.png)
 ![Accuracy for bag svm](.results/acc_svm.png)
 
+### Variation of Accuracy with Change in Vocabulary size
+![val nearest](./results/val_sift_nearest.png)
+![val svm](.results/val_sift_svm.png)
+
+### t-SNE Visualisation
+![SNE 1](./results/t-SNE-agriculture.png)
+![SNE 2](./results/t-SNE-buildings.png)
+![SNE 3](./results/t-SNE-forest.png)
+![SNE 4](./results/t-SNE-golfcourse.png)
+![SNE 5](./results/t-SNE-overpass.png)
+![SNE 6](./results/t-SNE-runway.png)
 
 
 
