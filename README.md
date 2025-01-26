@@ -22,19 +22,19 @@ Change the feature to either tiny_image or bag_of_sift and classifier to either 
 ## Results
 ### Confusion Matrix and Accuracy for Tiny Images with Nearest Neighbor Classifier
 ![TINY IMAGES](./results/Tiny_image.png)
-![Accuracy for Tiny Images](.results/acc_tiny.png)
+![Accuracy for Tiny Images](./results/acc_tiny.png)
 
 ### Confusion Matrix and Accuracy for Bag of Sift with Nearest Neighbor Classifier
 ![Bag](./results/bag_sift_nearest.png)
-![Accuracy for bag nearest](.results/acc_nearest.png)
+![Accuracy for bag nearest](./results/acc_nearest.png)
 
 ### Confusion Matrix and Accuracy for Bag of Sift with SVM Classifier
 ![Bag svm](./results/bag_sift_svm.png)
-![Accuracy for bag svm](.results/acc_svm.png)
+![Accuracy for bag svm](./results/acc_svm.png)
 
 ### Variation of Accuracy with Change in Vocabulary size
 ![val nearest](./results/val_sift_nearest.png)
-![val svm](.results/val_sift_svm.png)
+![val svm](./results/val_sift_svm.png)
 
 ### t-SNE Visualisation
 ![SNE 1](./results/t-SNE-agriculture.png)
