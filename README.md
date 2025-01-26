@@ -20,6 +20,7 @@ python proj3.py  -- feature tiny_image --classifier nearest_neighbor
 Change the feature to either tiny_image or bag_of_sift and classifier to either `nearest_neighbor` or `support_vector_machine` as required 
 
 ## Results
+### Confusion Matrix and Accuracy for Tiny Images with Nearest Neighbor Classifier
 ![TINY IMAGES](./results/Tiny_image.png)
 
 
