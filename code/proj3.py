@@ -4,6 +4,7 @@ import os
 import argparse
 import pickle
 
+
 from get_image_paths import get_image_paths
 from get_tiny_images import get_tiny_images
 from build_vocabulary import build_vocabulary
@@ -15,6 +16,11 @@ from svm_classify import svm_classify
 from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
 import numpy as np
+from PIL import Image
+from sklearn.manifold import TSNE
+
+from cyvlfeat.sift.dsift import dsift
+
 
 # Step 0: Set up parameters, category list, and image paths.
 
@@ -33,20 +39,23 @@ parser.add_argument('--feature', help='feature', type=str, default='dumy_feature
 parser.add_argument('--classifier', help='classifier', type=str, default='dumy_classifier')
 args = parser.parse_args()
 
-DATA_PATH = '../data/'
+DATA_PATH = '../data/UCMerced_LandUse/Images/'
 
 #This is the list of categories / directories to use. The categories are
 #somewhat sorted by similarity so that the confusion matrix looks more
 #structured (indoor and then urban and then rural).
 
-CATEGORIES = ['Kitchen', 'Store', 'Bedroom', 'LivingRoom', 'Office',
-              'Industrial', 'Suburb', 'InsideCity', 'TallBuilding', 'Street',
-              'Highway', 'OpenCountry', 'Coast', 'Mountain', 'Forest']
+CATEGORIES = ['agricultural', 'airplane', 'baseballdiamond', 'beach', 'buildings',
+              'chaparral', 'denseresidential', 'forest', 'freeway', 'golfcourse',
+              'harbor', 'intersection', 'mediumresidential', 'mobilehomepark',
+              'overpass', 'parkinglot', 'river', 'runway', 'sparseresidential',
+              'storagetanks', 'tenniscourt']
 
 CATE2ID = {v: k for k, v in enumerate(CATEGORIES)}
 
-ABBR_CATEGORIES = ['Kit', 'Sto', 'Bed', 'Liv', 'Off', 'Ind', 'Sub',
-                   'Cty', 'Bld', 'St', 'HW', 'OC', 'Cst', 'Mnt', 'For']
+ABBR_CATEGORIES = ['agr', 'air', 'base', 'bea', 'bui', 'cha', 'den', 'for', 'fre',
+                   'gol', 'har', 'int', 'med', 'mob', 'ove', 'par', 'riv', 'run',
+                   'spa', 'sto', 'ten']
 
 
 FEATURE = args.feature
@@ -59,7 +68,7 @@ CLASSIFIER = args.classifier
 #simplicity, we assume this is the number of test cases per category, as
 #well.
 
-NUM_TRAIN_PER_CAT = 100
+NUM_TRAIN_PER_CAT = 70
 
 
 def main():
@@ -68,8 +77,9 @@ def main():
     #test image. By default all four of these arrays will be 1500 where each
     #entry is a string.
     print("Getting paths and labels for all train and test data")
-    train_image_paths, test_image_paths, train_labels, test_labels = \
+    train_image_paths, test_image_paths, val_image_paths, train_labels, test_labels, val_labels = \
         get_image_paths(DATA_PATH, CATEGORIES, NUM_TRAIN_PER_CAT)
+    print(len(train_image_paths))
 
     # TODO Step 1:
     # Represent each image with the appropriate feature
@@ -85,34 +95,43 @@ def main():
 
     elif FEATURE == 'bag_of_sift':
         # YOU CODE build_vocabulary.py
-        if os.path.isfile('vocab.pkl') is False:
+        if os.path.isfile('vocab600.pkl') is False:
             print('No existing visual word vocabulary found. Computing one from training images\n')
-            vocab_size = 400   ### Vocab_size is up to you. Larger values will work better (to a point) but be slower to comput.
+            vocab_size =600   ### Vocab_size is up to you. Larger values will work better (to a point) but be slower to comput.
             vocab = build_vocabulary(train_image_paths, vocab_size)
-            with open('vocab.pkl', 'wb') as handle:
+            with open('vocab600.pkl', 'wb') as handle:
                 pickle.dump(vocab, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-        if os.path.isfile('train_image_feats_1.pkl') is False:
+        if os.path.isfile('train_image_feats_600.pkl') is False:
             # YOU CODE get_bags_of_sifts.py
             train_image_feats = get_bags_of_sifts(train_image_paths);
-            with open('train_image_feats_1.pkl', 'wb') as handle:
+            with open('train_image_feats_600.pkl', 'wb') as handle:
                 pickle.dump(train_image_feats, handle, protocol=pickle.HIGHEST_PROTOCOL)
         else:
-            with open('train_image_feats_1.pkl', 'rb') as handle:
+            with open('train_image_feats_600.pkl', 'rb') as handle:
                 train_image_feats = pickle.load(handle)
 
-        if os.path.isfile('test_image_feats_1.pkl') is False:
+        if os.path.isfile('test_image_feats_600.pkl') is False:
             test_image_feats  = get_bags_of_sifts(test_image_paths);
-            with open('test_image_feats_1.pkl', 'wb') as handle:
+            with open('test_image_feats_600.pkl', 'wb') as handle:
                 pickle.dump(test_image_feats, handle, protocol=pickle.HIGHEST_PROTOCOL)
         else:
-            with open('test_image_feats_1.pkl', 'rb') as handle:
+            with open('test_image_feats_600.pkl', 'rb') as handle:
                 test_image_feats = pickle.load(handle)
+
+        if os.path.isfile('val_image_feats_600.pkl') is False:
+            val_image_feats  = get_bags_of_sifts(val_image_paths);
+            with open('val_image_feats_600.pkl', 'wb') as handle:
+                pickle.dump(val_image_feats, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        else:
+            with open('val_image_feats_600.pkl', 'rb') as handle:
+                val_image_feats = pickle.load(handle)
     elif FEATURE == 'dumy_feature':
         train_image_feats = []
         test_image_feats = []
     else:
         raise NameError('Unknown feature type')
+    print(len(train_image_feats),len(train_image_feats[0]))
 
     # TODO Step 2: 
     # Classify each test image by training and using the appropriate classifier
@@ -123,12 +142,157 @@ def main():
     # 'train_labels', and 'test_labels.
 
     if CLASSIFIER == 'nearest_neighbor':
+        print(1)
         # YOU CODE nearest_neighbor_classify.py
-        predicted_categories = nearest_neighbor_classify(train_image_feats, train_labels, test_image_feats)
+        if FEATURE == 'tiny_image':
+            predicted_categories = nearest_neighbor_classify(train_image_feats, train_labels, test_image_feats)
+        elif FEATURE == 'bag_of_sift':
+            best=0
+            bestacc=0
+            for i in range (2,7):
+                if os.path.isfile(f'vocab{str(i*100)}.pkl') is False:
+                    print(2)
+                    print('No existing visual word vocabulary found. Computing one from training images\n')
+                    vocab_size =i*100   ### Vocab_size is up to you. Larger values will work better (to a point) but be slower to comput.
+                    vocab = build_vocabulary(train_image_paths, vocab_size)
+                    with open(f'vocab{str(i*100)}.pkl', 'wb') as handle:
+                        pickle.dump(vocab, handle, protocol=pickle.HIGHEST_PROTOCOL)
+                if os.path.isfile('train_image_feats_' + str(i*100) + '.pkl') is False:
+                    # YOU CODE get_bags_of_sifts.py
+                    train_image_feats = get_bags_of_sifts(train_image_paths);
+                    with open('train_image_feats_' + str(i*100) + '.pkl', 'wb') as handle:
+                        pickle.dump(train_image_feats, handle, protocol=pickle.HIGHEST_PROTOCOL)
+                else:
+                    with open('train_image_feats_' + str(i*100) + '.pkl', 'rb') as handle:
+                        train_image_feats = pickle.load(handle)
 
+                if os.path.isfile('test_image_feats_' + str(i*100) + '.pkl') is False:
+                    test_image_feats  = get_bags_of_sifts(test_image_paths);
+                    with open('test_image_feats_' + str(i*100) + '.pkl', 'wb') as handle:
+                        pickle.dump(test_image_feats, handle, protocol=pickle.HIGHEST_PROTOCOL)
+                else:
+                    with open('test_image_feats_' + str(i*100) + '.pkl', 'rb') as handle:
+                        test_image_feats = pickle.load(handle)
+
+                if os.path.isfile('val_image_feats_' + str(i*100) + '.pkl') is False:
+                    val_image_feats  = get_bags_of_sifts(val_image_paths);
+                    with open('val_image_feats_' + str(i*100) + '.pkl', 'wb') as handle:
+                        pickle.dump(val_image_feats, handle, protocol=pickle.HIGHEST_PROTOCOL)
+                else:
+                    with open('val_image_feats_' + str(i*100) + '.pkl', 'rb') as handle:
+                        val_image_feats = pickle.load(handle)
+                predicted_categories = nearest_neighbor_classify(train_image_feats, train_labels, val_image_feats)
+                accuracy = float(len([x for x in zip(val_labels,predicted_categories) if x[0]== x[1]]))/float(len(val_labels))
+                print('Accuracy(vocab==' + str(i*100) + ') = ', accuracy)
+                if(accuracy>bestacc):
+                    bestacc=accuracy
+                    best=i*100
+            if os.path.isfile('vocab' + str(best) + '.pkl') is False:
+                    print('No existing visual word vocabulary found. Computing one from training images\n')
+                    vocab_size =best   ### Vocab_size is up to you. Larger values will work better (to a point) but be slower to comput.
+                    vocab = build_vocabulary(train_image_paths, vocab_size)
+                    with open('vocab' + str(best) + '.pkl', 'wb') as handle:
+                        pickle.dump(vocab, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            if os.path.isfile('train_image_feats_' + str(best) + '.pkl') is False:
+                # YOU CODE get_bags_of_sifts.py
+                train_image_feats = get_bags_of_sifts(train_image_paths);
+                with open('train_image_feats_' + str(best) + '.pkl', 'wb') as handle:
+                    pickle.dump(train_image_feats, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            else:
+                with open('train_image_feats_' + str(best) + '.pkl', 'rb') as handle:
+                    train_image_feats = pickle.load(handle)
+
+            if os.path.isfile('test_image_feats_' + str(best) + '.pkl') is False:
+                test_image_feats  = get_bags_of_sifts(test_image_paths);
+                with open('test_image_feats_' + str(best) + '.pkl', 'wb') as handle:
+                    pickle.dump(test_image_feats, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            else:
+                with open('test_image_feats_' + str(best) + '.pkl', 'rb') as handle:
+                    test_image_feats = pickle.load(handle)
+
+            if os.path.isfile('val_image_feats_' + str(best) + '.pkl') is False:
+                val_image_feats  = get_bags_of_sifts(val_image_paths);
+                with open('val_image_feats_' + str(best) + '.pkl', 'wb') as handle:
+                    pickle.dump(val_image_feats, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            else:
+                with open('val_image_feats_' + str(best) + '.pkl', 'rb') as handle:
+                    val_image_feats = pickle.load(handle)
+            predicted_categories = nearest_neighbor_classify(train_image_feats, train_labels, test_image_feats)
+            print('Best vocab number is', best)
     elif CLASSIFIER == 'support_vector_machine':
         # YOU CODE svm_classify.py
+        best=0
+        bestacc=0
+        for i in range (2,7):
+            if os.path.isfile('vocab' + str(i*100) + '.pkl') is False:
+                print('No existing visual word vocabulary found. Computing one from training images\n')
+                vocab_size =i*100   ### Vocab_size is up to you. Larger values will work better (to a point) but be slower to comput.
+                vocab = build_vocabulary(train_image_paths, vocab_size)
+                with open('vocab' + str(i*100) + '.pkl', 'wb') as handle:
+                    pickle.dump(vocab, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            if os.path.isfile('train_image_feats_' + str(i*100) + '.pkl') is False:
+                    # YOU CODE get_bags_of_sifts.py
+                train_image_feats = get_bags_of_sifts(train_image_paths);
+                with open('train_image_feats_' + str(i*100) + '.pkl', 'wb') as handle:
+                    pickle.dump(train_image_feats, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            else:
+                with open('train_image_feats_' + str(i*100) + '.pkl', 'rb') as handle:
+                    train_image_feats = pickle.load(handle)
+
+            if os.path.isfile('test_image_feats_' + str(i*100) + '.pkl') is False:
+                test_image_feats  = get_bags_of_sifts(test_image_paths);
+                with open('test_image_feats_' + str(i*100) + '.pkl', 'wb') as handle:
+                    pickle.dump(test_image_feats, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            else:
+                with open('test_image_feats_' + str(i*100) + '.pkl', 'rb') as handle:
+                    test_image_feats = pickle.load(handle)
+
+            if os.path.isfile('val_image_feats_' + str(i*100) + '.pkl') is False:
+                val_image_feats  = get_bags_of_sifts(val_image_paths);
+                with open('val_image_feats_' + str(i*100) + '.pkl', 'wb') as handle:
+                    pickle.dump(val_image_feats, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            else:
+                with open('val_image_feats_' + str(i*100) + '.pkl', 'rb') as handle:
+                    val_image_feats = pickle.load(handle)
+            predicted_categories = svm_classify(train_image_feats, train_labels, val_image_feats)
+            accuracy = float(len([x for x in zip(val_labels,predicted_categories) if x[0]== x[1]]))/float(len(val_labels))
+            print('Accuracy(vocab==' + str(i*100) + ') = ', accuracy)
+            if(accuracy>bestacc):
+                bestacc=accuracy
+                best=i*100
+        if os.path.isfile('vocab' + str(best) + '.pkl') is False:
+                print('No existing visual word vocabulary found. Computing one from training images\n')
+                vocab_size =best   ### Vocab_size is up to you. Larger values will work better (to a point) but be slower to comput.
+                vocab = build_vocabulary(train_image_paths, vocab_size)
+                with open('vocab' + str(best) + '.pkl', 'wb') as handle:
+                    pickle.dump(vocab, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        if os.path.isfile('train_image_feats_' + str(best) + '.pkl') is False:
+                # YOU CODE get_bags_of_sifts.py
+            train_image_feats = get_bags_of_sifts(train_image_paths);
+            with open('train_image_feats_' + str(best) + '.pkl', 'wb') as handle:
+                pickle.dump(train_image_feats, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        else:
+            with open('train_image_feats_' + str(best) + '.pkl', 'rb') as handle:
+                train_image_feats = pickle.load(handle)
+
+        if os.path.isfile('test_image_feats_' + str(best) + '.pkl') is False:
+            test_image_feats  = get_bags_of_sifts(test_image_paths);
+            with open('test_image_feats_' + str(best) + '.pkl', 'wb') as handle:
+                pickle.dump(test_image_feats, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        else:
+            with open('test_image_feats_' + str(best) + '.pkl', 'rb') as handle:
+                test_image_feats = pickle.load(handle)
+
+        if os.path.isfile('val_image_feats_' + str(best) + '.pkl') is False:
+            val_image_feats  = get_bags_of_sifts(val_image_paths);
+            with open('val_image_feats_' + str(best) + '.pkl', 'wb') as handle:
+                pickle.dump(val_image_feats, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        else:
+            with open('val_image_feats_' + str(best) + '.pkl', 'rb') as handle:
+                val_image_feats = pickle.load(handle)
+        
         predicted_categories = svm_classify(train_image_feats, train_labels, test_image_feats)
+        print('Best vocab number is', best)
 
     elif CLASSIFIER == 'dumy_classifier':
         # The dummy classifier simply predicts a random category for
@@ -153,8 +317,37 @@ def main():
     # You do not need to code anything in this section. 
    
     build_confusion_mtx(test_labels_ids, predicted_categories_ids, ABBR_CATEGORIES)
-    visualize(CATEGORIES, test_image_paths, test_labels_ids, predicted_categories_ids, train_image_paths, train_labels_ids)
+    #sift_descriptors = np.random.rand(1000, 128)  # Simulated SIFT descriptors
+    #labels = np.random.randint(0, 10, 1000)  # Simulated labels for 10 categories
 
+    #visualize_sift_tsne(sift_descriptors, labels=labels)
+    #visualize(CATEGORIES, test_image_paths, test_labels_ids, predicted_categories_ids, train_image_paths, train_labels_ids)
+    images=['agricultural05.tif', 'buildings11.tif','forest21.tif','golfcourse50.tif','overpass40.tif', 'runway44.tif']
+    
+    classes=['agriculture','buildings','forest','golfcourse','overpass','runway']
+    print()
+    print('CREATING t-SNE files')
+    print()
+    for i in range(6):
+        path=images[i]
+        obj=classes[i]
+        print('obj ->',obj)
+        img=Image.open(path)
+        img = img.convert("L")
+        img = np.asarray(img,dtype='float32')
+        frames, descriptors = dsift(img, step=[3,3])
+
+        tsne = TSNE(n_components=2, random_state=42, perplexity=30, n_iter=1000)
+        descriptors_2d = tsne.fit_transform(descriptors)
+
+    # Plot the 2D t-SNE result
+        plt.figure(figsize=(8, 8))
+        plt.scatter(descriptors_2d[:, 0], descriptors_2d[:, 1], s=5, cmap='viridis')
+        plt.title(f"t-SNE Visualization of SIFT Descriptors for {path.split('/')[-1]}")
+        plt.xlabel("t-SNE Dimension 1")
+        plt.ylabel("t-SNE Dimension 2")
+        plt.savefig(f'../results/t-SNE-{obj}.png')
+        plt.close()
 def build_confusion_mtx(test_labels_ids, predicted_categories, abbr_categories):
     # Compute confusion matrix
     cm = confusion_matrix(test_labels_ids, predicted_categories)
@@ -185,6 +378,40 @@ def plot_confusion_matrix(cm, category, title='Confusion matrix', cmap=plt.cm.Bl
     plt.tight_layout()
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
+
+
+
+def visualize_sift_tsne(sift_descriptors, labels=None, perplexity=30, n_iter=300):
+    """
+    Visualize SIFT keypoints using t-SNE.
+
+    Parameters:
+    - sift_descriptors: Numpy array of shape (N, 128), where N is the number of descriptors.
+    - labels: (Optional) List or array of labels for coloring the points. Should have length N.
+    - perplexity: Perplexity parameter for t-SNE.
+    - n_iter: Number of iterations for t-SNE optimization.
+
+    Returns:
+    - None (displays a plot).
+    """
+    # Perform t-SNE to reduce dimensions
+    tsne = TSNE(n_components=2, perplexity=perplexity, n_iter=n_iter, random_state=42)
+    reduced_features = tsne.fit_transform(sift_descriptors)
+
+    # Plot the reduced features
+    plt.figure(figsize=(10, 8))
+    if labels is not None:
+        scatter = plt.scatter(
+            reduced_features[:, 0], reduced_features[:, 1], c=labels, cmap='tab10', s=10, alpha=0.8
+        )
+        plt.legend(*scatter.legend_elements(), title="Labels")
+    else:
+        plt.scatter(reduced_features[:, 0], reduced_features[:, 1], s=10, alpha=0.8)
+
+    plt.title("t-SNE Visualization of SIFT Descriptors")
+    plt.xlabel("Dimension 1")
+    plt.ylabel("Dimension 2")
+    plt.show()
 
 if __name__ == '__main__':
     main()

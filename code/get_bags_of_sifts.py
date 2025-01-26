@@ -34,16 +34,20 @@ def get_bags_of_sifts(image_paths):
         image_feats : (N, d) feature, each row represent a feature of an image
     '''
     
-    with open('vocab.pkl', 'rb') as handle:
+    with open('vocab600.pkl', 'rb') as handle:
         vocab = pickle.load(handle)
     
     image_feats = []
     
     start_time = time()
     print("Construct bags of sifts...")
-    
+    i=0
     for path in image_paths:
-        img = np.asarray(Image.open(path),dtype='float32')
+        
+       
+        img = Image.open(path)
+        img = img.convert("L")
+        img=np.asarray(img, dtype='float32')
         frames, descriptors = dsift(img, step=[1,1], fast=True)
         dist = distance.cdist(vocab, descriptors, metric='euclidean')
         idx = np.argmin(dist, axis=0)

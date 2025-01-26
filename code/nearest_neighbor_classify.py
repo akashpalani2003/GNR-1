@@ -36,20 +36,26 @@ def nearest_neighbor_classify(train_image_feats, train_labels, test_image_feats)
             category for each testing image.
     '''
     
-    CATEGORIES = ['Kitchen', 'Store', 'Bedroom', 'LivingRoom', 'Office',
-              'Industrial', 'Suburb', 'InsideCity', 'TallBuilding', 'Street',
-              'Highway', 'OpenCountry', 'Coast', 'Mountain', 'Forest']
+    CATEGORIES = ['agricultural', 'airplane', 'baseballdiamond', 'beach', 'buildings',
+              'chaparral', 'denseresidential', 'forest', 'freeway', 'golfcourse',
+              'harbor', 'intersection', 'mediumresidential', 'mobilehomepark',
+              'overpass', 'parkinglot', 'river', 'runway', 'sparseresidential',
+              'storagetanks', 'tenniscourt']
     K = 1
     
     N = train_image_feats.shape[0]
     M = test_image_feats.shape[0]
     d = train_image_feats.shape[1] # d are same in both train and test
+    print(N,M,d)
     
     dist = distance.cdist(test_image_feats, train_image_feats, metric='euclidean')
     #dist = distance.cdist(train_image_feats, test_image_feats, metric='euclidean')
     test_predicts = []
-    
+    print(len(dist))
+    j=0
     for each in dist:
+        
+        
         label = []
         idx = np.argsort(each)
         for i in range(K):
@@ -62,6 +68,7 @@ def nearest_neighbor_classify(train_image_feats, train_labels, test_image_feats)
                 label_final = item
     
         test_predicts.append(label_final)
+        
         
     #############################################################################
     #                                END OF YOUR CODE                           #

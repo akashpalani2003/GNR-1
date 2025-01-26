@@ -83,7 +83,9 @@ def build_vocabulary(image_paths, vocab_size):
     #pdb.set_trace()
     
     for path in image_paths:
-        img = np.asarray(Image.open(path),dtype='float32')
+        img = Image.open(path)
+        img = img.convert("L")
+        img=np.asarray(img, dtype='float32')
         frames, descriptors = dsift(img, step=[5,5], fast=True)
         bag_of_features.append(descriptors)
     bag_of_features = np.concatenate(bag_of_features, axis=0).astype('float32')
