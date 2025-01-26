@@ -1,3 +1,80 @@
+# GNR 638 Assignment-1
+
+This is the submission for GNR638 Assignment 1,
+
+### Group members
+
+- Akash Sansugu Palaniswami (21D171001)
+- Rahul B (22B3976)
+
+
+## Overview
+
+The goal of this project is to perform classfication over images in  the [UCMerced Land Use data]( http://weegee.vision.ucmerced.edu/datasets/landuse.html) dataset. The data consists of 21 classes ranging from agricultural land, forests, industrial areas etx and each class contains 100 images of 256x256 size in the '.tif' format. 
+
+Creating features by :- [Bag of sift](https://liverungrow.medium.com/sift-bag-of-features-svm-for-classification-b5f775d8e55f)
+
+Performing classification by  using Nearest Neighbor Support Vector Machines
+
+Majority of the code base is inspired from [this project on Github](https://github.com/lionelmessi6410/Scene-Recognition-with-Bag-of-Words/blob/master/code/proj3.py), apart from the changes made are listed below
+
+## Steps to run code
+
+```bash
+python assignment.py --classifier nearest_neighbor
+```
+
+Change the classifier to either `nearest_neighbor` or `support_vector_machine` as required 
+
+## Changes done in the codebase
+
+- Since the dataset has been changed (in the folder [Merced](./Merced/)), the class names have been changed, so reading them in like this
+```python
+CATEGORIES=os.listdir(DATA_PATH)
+
+CATE2ID = {v: k for k, v in enumerate(CATEGORIES)}
+
+ABBR_CATEGORIES = [i[:3] for i in CATEGORIES]
+```
+
+- Additionally implemented the file reader such that it dynamically picks up on the train, validation and test file paths (since that partition isnt present originally in the data folder) based on the percentages of train val and test data which are 70,10 and 20 percent repsectively.
+- The paths are shuffled and then split into the given percentages to ensure unbiased training
+
+- Since we have a validation split of 10%, we experiment for different values of number of codewords (vocab_size) to find the most optimal number of parameters for the classifiers. The values we check for in this validation set will be [200,300,400,500,600]
+
+- The vocabulary, training_features, validation_features and testing_features are saved into .pkl files for the different values of the `vocab_size` parameter, to allow instantaneous testing.
+
+- Since we are creating new vocabularies each time for each `vocab_size`, we read that particular file while creating the features, hence we update the [get_bags_of_sift.py](./code/get_bags_of_sifts.py) to use this `vocab_size`.
+
+- Then after the features are created, we check which vocab_size performed the best in the val dataset, and this vocab_size is what will be used to evaluate against the test set for the final metrics
+```python
+ max_accuracy=0
+best_vocab=0
+for i in vocab_sizes:
+    with open(f'history-{vocab_size}.pkl', 'rb') as handle:
+        history = pickle.load(handle)
+    if(store[i]['accuracy']>max_accuracy):
+        max_accuracy=store[i]['accuracy']
+        best_vocab=i
+
+print('Best vocab size ',best_vocab)
+```
+
+#### Other important changes
+
+- Since the images were in RGB format, they had 3 channels, which were not suitable to be fed into the dsift() function, so we approximated / converted the images to GREYSCALE since only 2D images could be fed into the function (Its a single channel now). We did these changes in [build_vocabulary.py](./code/build_vocabulary.py) and [get_bags_of_sift.py](./code/get_bags_of_sifts.py), like this
+```python
+img=Image.open(path)
+img = img.convert("L")
+img = np.asarray(img,dtype='float32')
+```
+
+- Since the entire process of creating the sift features was taking too long, used a tqdm loader in [build_vocabulary.py](./code/build_vocabulary.py) and [get_bags_of_sift.py](./code/get_bags_of_sifts.py) to measure the percentage of features created.
+```python
+for path in tqdm(image_paths):
+img=Image.open(path)
+```
+
 # Scene-recognition-with-bag-of-words
 
 <center>
