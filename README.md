@@ -56,6 +56,65 @@ This gives us a total of 16 different combinations to test, to determine which g
 python mlp_test.py --classifier mlp
 ```
 
+### Important Parts of Code
+We define a class called MLP in order to adjust and tamper with parameters such as activation and hidden layers of the model. Each activation function that we test on must be defined here
+```bash
+class MLP(nn.Module):
+    def __init__(self, input_size, hidden_size1, hidden_size2, activation,num_classes=len(CATEGORIES)):
+        super(MLP, self).__init__()
+        self.fc1 = nn.Linear(input_size, hidden_size1)
+        self.fc2 = nn.Linear(hidden_size1, hidden_size2)
+        self.fc3 = nn.Linear(hidden_size2, num_classes)
+
+        self.activation=activation 
+        
+        self.relu1 = nn.ReLU()
+        self.relu2 = nn.ReLU()
+        self.sigmoid1=nn.Sigmoid()
+        self.sigmoid2=nn.Sigmoid()
+        self.tanh1 = nn.Tanh()
+        self.tanh2 = nn.Tanh()
+
+    def forward(self, x):
+
+        if(self.activation=='relu'):
+            x = self.relu1(self.fc1(x))
+            x = self.relu2(self.fc2(x))
+            x = self.fc3(x)
+        
+        if(self.activation=='linear'):
+            x = self.fc1(x)
+            x = self.fc2(x)
+            x = self.fc3(x)
+
+        if(self.activation=='sigmoid'):
+            x = self.sigmoid1(self.fc1(x))
+            x = self.sigmoid1(self.fc2(x))
+            x = self.fc3(x)
+        
+        if(self.activation == 'tanh'):
+            x = self.tanh1(self.fc1(x))  # Apply tanh on first layer
+            x = self.tanh2(self.fc2(x))  # Apply tanh on second layer
+            x = self.fc3(x)
+
+        return x
+```
+Train and crossvalidation functions are defined such that they are put in a for loop until all 16 combination of size and activation are tried. All features are transformed into tensors to be used in MLP 
+```bash
+train_feats = torch.tensor(train_feats, dtype=torch.float32)
+    train_labels = torch.tensor(train_labels, dtype=torch.long)
+   
+
+    train_dataset = TensorDataset(train_feats, train_labels)
+    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+
+    HiddenLayers=[(512, 256), (256,128), (1024,512), (2048,1024)]
+    Activations=['relu','tanh','linear','sigmoid']
+
+    for i in HiddenLayers:
+        for j in Activations:
+```
+Model with best value of accuracy from cross validation is then used for testing
 
 ## Results
 ![Ass2Part1](./results/Assignment2_Part1.png)
