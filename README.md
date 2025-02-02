@@ -1,4 +1,4 @@
-# GNR 638 Assignment-1
+# GNR 638 Assignment-1,2
 
 This is the submission for GNR638 Assignment 1,2
 
@@ -54,7 +54,7 @@ File mlp_test.py is to be run for this part. The features used were taken as the
 This gives us a total of 16 different combinations to test, to determine which gives the best output using validation. A cross vaidation technique was used to determine which of the above combinations proved to be best. The accuracy came out to be between 60-70% for most of them. When running this code, an input as --classifier mlp should be given along with the run command. 
 
 ## Results
-
+![Ass2Part1](./results/Assignment2_Part1.png)
 
 
 
