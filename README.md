@@ -56,7 +56,7 @@ This gives us a total of 16 different combinations to test, to determine which g
 ## Results
 ![Ass2Part1](./results/Assignment2_Part1.png)
 
-
+The best validation accuracy is shown for the maximum hidden layers, which is as expected and the activation function is linear. When tested with this same setup of the MLP we obtain an accuracy of 67.14%, which is around 2% less than what we achieved in validation.
 
 
 
