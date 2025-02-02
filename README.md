@@ -52,6 +52,10 @@ The goal of this assignment was to use the UCMerced Land dataset for classificat
 ## Part 1
 File mlp_test.py is to be run for this part. The features used were taken as the same features that were obtained from bag of sift in the first assignment. Vocab size of 600 was used as logically the higher amount of features should give us better results. MLP models are to be tested for the following pairs of hidden layer values: [(512, 256), (256,128), (1024,512), (2048,1024)]. The different activation functions tested are: ['relu','tanh','linear','sigmoid']
 This gives us a total of 16 different combinations to test, to determine which gives the best output using validation. A cross vaidation technique was used to determine which of the above combinations proved to be best. The accuracy came out to be between 60-70% for most of them. When running this code, an input as --classifier mlp should be given along with the run command. 
+```bash
+python mlp_test.py --classifier mlp
+```
+
 
 ## Results
 ![Ass2Part1](./results/Assignment2_Part1.png)
