@@ -119,7 +119,7 @@ Model with best value of accuracy from cross validation is then used for testing
 ## Results
 ![Ass2Part1](./results/Assignment2_Part1.png)
 
-The best validation accuracy is shown for the maximum hidden layers, which is as expected and the activation function is linear. When tested with this same setup of the MLP we obtain an accuracy of 67.14%, which is around 2% less than what we achieved in validation.
+The best validation accuracy is shown for the maximum hidden layers, which is as expected and the activation function is linear. When tested with this same setup of the MLP we obtain an accuracy of 67.14%, which is around 2% less than what we achieved in validation. During training, the losses get to be very low, almost at 0 as we near 200 epochs, so the use of high epochs is justified.
 
 ![Ass2Part1Graph](./results/Part1_graph.png)
 As can be seen from the graph, it seems pretty clear that sigmoid function gives us the worst results. It can also be seen that in general a higher number of hidden layers leads to better results, which logically makes sense. It can also be seen that when the 2 hidden layers have 2048 and 1024 layers respectively, the accuracy seems to be the best, with the exception of sigmoid activaton function
@@ -173,5 +173,5 @@ train_labels = torch.tensor(train_labels, dtype=torch.long)
 The remainder of the code more or less remains the same as part 1 which is mlp_test.py
 
 ## Results
-Relu and Tanh both eventually come to a loss of 3 pretty quickly, within the first 10 epochs, and it stays the same for the remainder of the training. For this reason keeping 200 epochs might be too much and a waste of time and efficiency. On the other hand linear activation function causes high fluctuation in the losses, ranging in the hundreds quite often, and it never seems to settle down.
+Relu and Tanh both eventually come to a loss of 3 pretty quickly, within the first 10 epochs, and it stays the same for the remainder of the training. For this reason keeping 200 epochs might be too much and a waste of time and efficiency. On the other hand linear activation function causes high fluctuation in the losses, ranging in the hundreds quite often and sometimes even the thousands, and it never seems to settle down.
 
