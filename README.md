@@ -121,6 +121,57 @@ Model with best value of accuracy from cross validation is then used for testing
 
 The best validation accuracy is shown for the maximum hidden layers, which is as expected and the activation function is linear. When tested with this same setup of the MLP we obtain an accuracy of 67.14%, which is around 2% less than what we achieved in validation.
 
+![Ass2Part1Graph](./results/Part1_graph.png)
+As can be seen from the graph, it seems pretty clear that sigmoid function gives us the worst results. It can also be seen that in general a higher number of hidden layers leads to better results, which logically makes sense. It can also be seen that when the 2 hidden layers have 2048 and 1024 layers respectively, the accuracy seems to be the best, with the exception of sigmoid activaton function
 
 
+## Part 2
+File mlp_flatten.py is to be run for this part. Instead of taking bag of sift features, we take the given UCMerced data, resize it to a shape of (72,72), then flatten it in order to linearise it. This is taken as the features of each image, which is the input for the MLP. 
+MLP models are to be tested for the following pairs of hidden layer values: [(512, 256) (1024,512), (2048,1024)]. The different activation functions tested are: ['relu','tanh','linear']. (256,128) and sigmoid function were removed from testing as we could see the poor results given by them in part 1 of the assignment, so it seems like a waste of time to test them again. A total of 9 combinations are to be tested.
+
+### Important Parts of the code
+File resize_linearise.py was created to contain the function resize_and_linearize_images which resized and flattened the given images.
+```bash
+def resize_and_linearize_images(image_paths, size=(72, 72)):
+    """
+    Resize images to the specified size and linearize them (flatten to 1D array).
+    
+    Parameters:
+    - image_paths (list): List of paths to the images.
+    - size (tuple): Target size to resize the images (default: 72x72).
+    
+    Returns:
+    - resized_images (list): List of resized and linearized images.
+    """
+    resized_images = []
+    
+    for image_path in image_paths:
+        # Open image
+        image = Image.open(image_path)
+        
+        # Resize image to 72x72
+        image_resized = image.resize(size)
+        
+        # Convert image to numpy array and flatten it
+        image_array = np.array(image_resized)
+        
+        # Flatten the image (convert it into a 1D vector)
+        linearized_image = image_array.flatten()
+        
+        resized_images.append(linearized_image)
+    
+    print('Done')
+    
+    return resized_images
+```
+Before converting all the features to tensors they were first transformed to numpy arrays to speeden the training process.
+```bash
+train_feats=np.array(train_feats)
+train_feats = torch.tensor(train_feats, dtype=torch.float32)
+train_labels = torch.tensor(train_labels, dtype=torch.long)
+```
+The remainder of the code more or less remains the same as part 1 which is mlp_test.py
+
+## Results
+Relu and Tanh both eventually come to a loss of 3 pretty quickly, within the first 10 epochs, and it stays the same for the remainder of the training. For this reason keeping 200 epochs might be too much and a waste of time and efficiency. On the other hand linear activation function causes high fluctuation in the losses, ranging in the hundreds quite often, and it never seems to settle down.
 
