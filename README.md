@@ -173,5 +173,13 @@ train_labels = torch.tensor(train_labels, dtype=torch.long)
 The remainder of the code more or less remains the same as part 1 which is mlp_test.py
 
 ## Results
-Relu and Tanh both eventually come to a loss of 3 pretty quickly, within the first 10 epochs, and it stays the same for the remainder of the training. For this reason keeping 200 epochs might be too much and a waste of time and efficiency. On the other hand linear activation function causes high fluctuation in the losses, ranging in the hundreds quite often and sometimes even the thousands, and it never seems to settle down.
+![Ass2Part2](./results/Assignment2_Part2.png)
+Relu and Tanh seem to be giving the same accuracy all the time which is concerning as it is very low at 0.0476. These are not good activation functions to use for the given problem. Linear function gives us better reults at around 0.2 although not great.
 
+ ![Ass2Part1Graph](./results/Part1_graph.png)
+ Linear functions is the only one that gives us decent results, and no pattern can be said by the hidden layer size, although (512, 256) which is the smallest size, gives us the best results.
+ 
+Relu and Tanh both eventually come to a loss of 3 pretty quickly, within the first 10 epochs, and it stays the same for the remainder of the training. This indicates that there may not be much use in training and for this reason keeping 200 epochs might be too much and a waste of time and efficiency. On the other hand linear activation function causes high fluctuation in the losses, ranging in the hundreds quite often and sometimes even the thousands, and it never seems to settle down.
+
+## Conclusion and Comparision
+Bag of sift features with MLP is much better that resizing and linearising as the accuracy is more than triple in the first case. Not only did the second part not emit good results, but it also used up a lot of time in traaining when compared to the first one, which is just a waste of resources for poorer results.
