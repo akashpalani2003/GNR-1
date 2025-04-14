@@ -5,7 +5,7 @@ This is the submission for GNR638 Assignment 1,2
 ### Group members
 
 - Akash Sansugu Palaniswami (21D171001)
-- Rahul B (22B3976)
+
 
 # Assignment 1
 ## Overview
